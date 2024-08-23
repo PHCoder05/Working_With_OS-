@@ -1,1 +1,87 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+
+#define SIZE 10
+
+int A[SIZE][SIZE], B[SIZE][SIZE];
+long int C[SIZE][SIZE];
+
+void *mul_thread(void *arg) {
+    int *data = (int *)arg;
+    int row = data[0];
+    int col = data[1];
+    int k = data[2];
+    long int *result = (long int *)malloc(sizeof(long int));  // Allocate memory for the result
+    *result = A[row][k] * B[k][col];  // Calculate the product of the corresponding elements
+    pthread_exit((void *)result);  // Return the result
+}
+
+void accept_matrix(int M[SIZE][SIZE], int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            printf("Value at [%d][%d]: ", i + 1, j + 1);
+            scanf("%d", &M[i][j]);
+        }
+    }
+}
+
+void display_matrix(int M[SIZE][SIZE], int rows, int cols) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            printf("%2d  ", M[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+int main() {
+    int rows_A, cols_A, rows_B, cols_B;
+
+    printf("\nEnter no. of rows in matrix A: ");
+    scanf("%d", &rows_A);
+    printf("Enter no. of columns in matrix A: ");
+    scanf("%d", &cols_A);
+    accept_matrix(A, rows_A, cols_A);
+
+    printf("\nEnter no. of rows in matrix B: ");
+    scanf("%d", &rows_B);
+    printf("Enter no. of columns in matrix B: ");
+    scanf("%d", &cols_B);
+    accept_matrix(B, rows_B, cols_B);
+
+    if (cols_A != rows_B) {
+        printf("\nMatrix multiplication not possible.\n");
+        exit(1);
+    }
+
+    pthread_t threads[SIZE][SIZE][SIZE];
+    int thread_args[3];
+    long int *result;
+
+    // Creating threads
+    for (int i = 0; i < rows_A; i++) {
+        for (int j = 0; j < cols_B; j++) {
+            C[i][j] = 0;  // Initialize the result matrix
+            for (int k = 0; k < cols_A; k++) {
+                thread_args[0] = i;
+                thread_args[1] = j;
+                thread_args[2] = k;
+                pthread_create(&threads[i][j][k], NULL, mul_thread, thread_args);
+                pthread_join(threads[i][j][k], (void **)&result);  // Collect the result from the thread
+                C[i][j] += *result;  // Sum the result in the main thread
+                free(result);  // Free the memory allocated for the result
+            }
+        }
+    }
+
+    printf("\nMatrix A:");
+    display_matrix(A, rows_A, cols_A);
+    printf("\nMatrix B:");
+    display_matrix(B, rows_B, cols_B);
+    printf("\nResultant Matrix:");
+    display_matrix(C, rows_A, cols_B);
+
+    return 0;
+}
 
