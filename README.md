@@ -160,12 +160,13 @@ This application demonstrates a client-server model using shared memory. The ser
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-```
 
-### Instructions for Use
 
-1. **Copy and Paste**: Create a new file named `README.md` in your project directory and copy this content into it.
-2. **Modify as Needed**: Update any specific details related to your implementations, such as the exact names of your C files or any additional instructions specific to your projects.
-3. **Add Dependencies**: If any additional libraries or dependencies are required beyond what's mentioned, be sure to add those to the README as well. 
+## 📬 Stay Connected
 
-Feel free to expand or adjust the sections based on your actual implementations!
+Continue your learning journey and stay updated with more resources:
+
+- [GitHub Profile](https://github.com/phcoder05)
+- [LinkedIn Profile](https://www.linkedin.com/in/pankaj-hadole-722476232/)
+
+Happy coding! 😊
