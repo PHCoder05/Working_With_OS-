@@ -1,0 +1,76 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/wait.h> // for wait()
+
+int main(void) {
+    int fd1[2], fd2[2]; 
+    pid_t pid; 
+    char string[80]; 
+    char readbuffer[80];
+    char ch;
+    FILE *fp;
+
+    // Create pipes
+    pipe(fd1); // Pipe for filename
+    pipe(fd2); // Pipe for file content
+
+    // Error in fork
+    if ((pid = fork()) == -1) {
+        perror("fork");
+        exit(1);
+    }
+
+    // Child Process
+    if (pid == 0) {
+        close(fd1[1]); // Close write end of Pipe 1
+        read(fd1[0], readbuffer, sizeof(readbuffer)); // Read filename
+        printf("\nFilename '%s' is being read by Child Process through Pipe 1...\n", readbuffer);
+        
+        fp = fopen(readbuffer, "r");
+        if (fp == NULL) {
+            perror("fopen");
+            exit(1);
+        }
+
+        close(fd1[0]); // Close read end of Pipe 1
+        close(fd2[0]); // Close read end of Pipe 2
+        printf("\nContents of %s are being sent to Parent Process through Pipe 2...\n", readbuffer);
+
+        // Read file contents and write to Pipe 2
+        while ((ch = fgetc(fp)) != EOF) {
+            write(fd2[1], &ch, sizeof(ch)); // Write character to Pipe 2
+        }
+
+        fclose(fp); // Close the file
+        close(fd2[1]); // Close write end of Pipe 2
+        exit(0);
+    } 
+    // Parent process
+    else {
+        close(fd1[0]); // Close read end of Pipe 1
+        printf("IN PARENT PROCESS\n");
+        printf("\nEnter name of file: ");
+        scanf("%s", string); 
+        printf("Filename is being sent by Parent Process to Child Process through Pipe 1...\n"); 
+        write(fd1[1], string, (strlen(string) + 1)); // Write filename to Pipe 1
+        close(fd1[1]); // Close write end of Pipe 1
+
+        wait(NULL); // Wait for the child process to finish
+
+        close(fd2[1]); // Close write end of Pipe 2
+
+        printf("\nContents of %s are being received by Parent Process through Pipe 2...\n\n", string);
+        printf("IN PARENT PROCESS\n");
+        printf("\nReceived Message:\n");
+
+        // Read contents from Pipe 2 and print
+        while (read(fd2[0], &ch, sizeof(ch)) > 0) {
+            printf("%c", ch); // Print character
+        }
+        
+        close(fd2[0]); // Close read end of Pipe 2
+    } 
+    return 0; 
+}
